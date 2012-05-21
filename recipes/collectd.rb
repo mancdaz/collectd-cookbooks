@@ -20,10 +20,11 @@
 #
 package "collectd" do
     case node['platform']
-    when "ubuntu"
-      package_name "collectd-core"
-    when "fedora"
-      package_name "collectd"
+        when "ubuntu"
+        package_name "collectd-core"
+        when "fedora"
+        package_name "collectd"
+    end
 end
 
 
