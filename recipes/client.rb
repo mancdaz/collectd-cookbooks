@@ -19,15 +19,20 @@
 
 include_recipe "collectd"
 
-servers = []
-search(:node, 'recipes:"collectd::server"') do |n|
-  servers << n['fqdn']
-end
-
-if servers.empty?
-  raise "No servers found. Please configure at least one node with collectd::server."
+if Chef::Config[:solo]
+  Chef::Log.warn("This recipe uses search. Chef Solo does not support search.")
+else
+  # Lookup collectd master ip address
+  collectd, something, arbitrary_value = Chef::Search::Query.new.search(:node, "roles:collectd-server AND chef_environment:#{node.chef_environment}")
+  if collectd.length > 0
+    Chef::Log.info("collectd::client using search")
+    collectd_master_ip = collectd[0]['collectd']['master']['ip']
+  else
+    Chef::Log.info("nova::api-os-compute/keystone NOT using search")
+    collectd_master_ip = node['collectd']['master']['ip']
+  end
 end
 
 collectd_plugin "network" do
-  options :server=>servers
+  options :server=>collectd_master_ip
 end
